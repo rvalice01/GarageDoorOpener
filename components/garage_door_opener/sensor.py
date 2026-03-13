@@ -1,10 +1,10 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import sensor
+from esphome.components import sensor, api
 from esphome.const import UNIT_EMPTY
 
 garage_ns = cg.esphome_ns.namespace("garage_door_opener")
-GarageDoorOpener = garage_ns.class_("GarageDoorOpener", cg.Component, cg.CustomAPIDevice)
+GarageDoorOpener = garage_ns.class_("GarageDoorOpener", cg.Component, api.CustomAPIDevice)
 DoorStateSensor = garage_ns.class_("DoorStateSensor", sensor.Sensor, cg.PollingComponent)
 
 CONF_DOOR_STATE = "door_state"
