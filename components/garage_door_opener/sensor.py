@@ -9,18 +9,22 @@ DoorStateSensor = garage_ns.class_("DoorStateSensor", sensor.Sensor, cg.PollingC
 
 CONF_DOOR_STATE = "door_state"
 
-CONFIG_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(GarageDoorOpener),
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.declare_id(GarageDoorOpener),
+        cv.Optional(CONF_DOOR_STATE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_EMPTY,
+            icon="mdi:garage",
+            accuracy_decimals=0,
+        ).extend(
+            {
+                cv.GenerateID("door_state_sensor_id"): cv.declare_id(DoorStateSensor),
+                cv.Optional("update_interval", default="1s"): cv.update_interval,
+            }
+        ),
+    }
+).extend(cv.COMPONENT_SCHEMA)
 
-    cv.Optional(CONF_DOOR_STATE): sensor.sensor_schema(
-        unit_of_measurement=UNIT_EMPTY,
-        accuracy_decimals=0,
-        # icon and state_class are optional; omit for compatibility
-    ).extend({
-        cv.GenerateID("door_state_sensor_id"): cv.declare_id(DoorStateSensor),
-        cv.Optional("update_interval", default="1s"): cv.update_interval,
-    }),
-}).extend(cv.COMPONENT_SCHEMA)
 
 async def to_code(config):
     opener = cg.new_Pvariable(config[cv.CONF_ID])
