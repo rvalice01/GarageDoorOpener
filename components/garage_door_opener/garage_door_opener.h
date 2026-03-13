@@ -1,17 +1,18 @@
 #pragma once
+
 #include "esphome/core/component.h"
+#include "esphome/core/hal.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/api/custom_api_device.h"
-#include "esphome/core/hal.h"
 
-namespace esphome;
-namespace garage_door_opener;
+namespace esphome {
+namespace garage_door_opener {
 
 static const uint32_t HA_SERVICE_UPDATE_INTERVAL_MS = 1000;
 static const uint32_t TIME_250_MS = 250;
 static const int PUSH_BUTTON_CYCLES = 2;
 
-// Pins (keep as in your original)
+// Fixed pins (from your original)
 static const gpio_num_t DOOR_BUTTON_RELAY = GPIO_NUM_13;
 static const gpio_num_t DOOR_OPEN_STATUS_SWITCH = GPIO_NUM_14;
 static const gpio_num_t DOOR_CLOSED_STATUS_SWITCH = GPIO_NUM_27;
@@ -32,13 +33,13 @@ class GarageDoorOpener : public Component, public api::CustomAPIDevice {
     pinMode(DOOR_BUTTON_RELAY, OUTPUT);
     digitalWrite(DOOR_BUTTON_RELAY, LOW);
 
-    // Keep your HA service name the same
+    // Keep HA service name identical to your original
     register_service(&GarageDoorOpener::on_door_button_service_, "Garage_Door_Button");
 
     this->door_button_rq_ = false;
     this->push_button_counter_ = 0;
 
-    // Init state
+    // INPUT_PULLUP => contact closed reads LOW
     if (digitalRead(DOOR_CLOSED_STATUS_SWITCH) == LOW) {
       this->door_state_ = GARAGE_DOOR_CLOSED;
     } else if (digitalRead(DOOR_OPEN_STATUS_SWITCH) == LOW) {
@@ -79,7 +80,6 @@ class GarageDoorOpener : public Component, public api::CustomAPIDevice {
   }
 
   void update_door_state_() {
-    // Same logic as your original (contacts are INPUT_PULLUP: LOW = closed contact)
     const bool open_contact_closed = (digitalRead(DOOR_OPEN_STATUS_SWITCH) == LOW);
     const bool closed_contact_closed = (digitalRead(DOOR_CLOSED_STATUS_SWITCH) == LOW);
 
@@ -102,4 +102,27 @@ class GarageDoorOpener : public Component, public api::CustomAPIDevice {
     if ((this->door_state_ == GARAGE_DOOR_CLOSING) && open_contact_closed)
       this->door_state_ = GARAGE_DOOR_OPEN;
   }
+
+  DoorState door_state_{GARAGE_DOOR_ERROR};
+  bool door_button_rq_{false};
+  int push_button_counter_{0};
+  uint32_t previous_time_{0};
+};
+
+class DoorStateSensor : public sensor::Sensor, public PollingComponent {
+ public:
+  explicit DoorStateSensor(GarageDoorOpener *parent)
+      : PollingComponent(HA_SERVICE_UPDATE_INTERVAL_MS), parent_(parent) {}
+
+  void update() override {
+    const float state = (float) this->parent_->get_door_state();
+    if (!this->has_state() || this->state != state)
+      this->publish_state(state);
+  }
+
+ protected:
+  GarageDoorOpener *parent_;
+};
+
+}  // namespace garage_door_opener
 }  // namespace esphome
