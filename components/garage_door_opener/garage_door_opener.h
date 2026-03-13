@@ -4,8 +4,8 @@
 #include "esphome/components/api/custom_api_device.h"
 #include "esphome/core/hal.h"
 
-namespace esphome {
-namespace garage_door_opener {
+namespace esphome;
+namespace garage_door_opener;
 
 static const uint32_t HA_SERVICE_UPDATE_INTERVAL_MS = 1000;
 static const uint32_t TIME_250_MS = 250;
