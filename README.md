@@ -1,1 +1,1 @@
-This code was converted from an custom component to an external component by AI.
+This code was converted from a custom component to an external component by AI.
